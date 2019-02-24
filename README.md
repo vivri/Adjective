@@ -42,8 +42,10 @@ __^^[Adjective]__ solved both problems, such that:
 1) You can __create arbitrary restrictions__ on base types (a.k.a. __refined__ types, or adjectives in linguistics.)
 1) You can use Boolean Algebra to arbitrarily __create new adjectives__ from existing ones.
 1) It is __lightweight__:
-    1) Runtime operations are cacheable, 
-    1) Minimum boilerplate, and little knowledge of advanced Typelevel features.
+    - Runtime operations are cacheable and predictable.
+    - Adjective rules are best stored as singletons.
+    - Minimum boilerplate, and little knowledge of advanced Typelevel features.
+    - Zero library dependencies.
 
 ### Usage Example
 
@@ -64,6 +66,7 @@ __^^[Adjective]__ solved both problems, such that:
       case object JewishLastName    extends ^^[String] (_ endsWith "berg")
 
       // We use boolean algebra to combine base rules into more complex rules
+      // Note the prefix `~` - this denotes negation.
       val FirstNameRule = Name & ~BadName
       val LastNameRule = FirstNameRule & (ScottishLastName | JewishLastName)
     }
