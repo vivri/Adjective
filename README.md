@@ -1,6 +1,6 @@
 ## `^^[Adjective]`
 
-#### Programming is about communicating intent; increase your expressivity with Adjective.
+#### Boost your type expressiveness with Adjective.
 
 ### The Problem
 
