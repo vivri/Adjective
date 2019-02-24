@@ -1,6 +1,6 @@
 ## `^^[Adjective]`
 
-##### Programming is about communicating intent; increase your expressivity with Adjective.
+#### Programming is about communicating intent; increase your expressivity with Adjective.
 
 ### The Problem
 
@@ -32,7 +32,7 @@ This restricts our ability to express our domain, our __ontology__, in a succinc
 1) We cannot natively apply __adjectives__ to our nouns (e.g. __Positive__ number.)
 1) We cannot natively __combine__ our adjectives to form new ones (e.g. Positive __AND__ even number.)
 
-You should be able to think of your domain in these terms, but currently, it is very cumbersome, so we mostly end up
+We should be able to think and express our domain in these terms, but currently, it is very cumbersome, so we mostly end up
 using the raw types, and create weak constraints via opaque ad-hoc validations.
 
 ### The Solution
