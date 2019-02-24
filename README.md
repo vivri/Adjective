@@ -96,7 +96,8 @@ __^^[Adjective]__ solved both problems, such that:
 
     // Using toString gives an intuitive peek at the rule algebra
     //
-    // The atomic `^^[A,T]` `toString` values are combined together with Boolean notation - users should feel free to override `toString` for clarity, as well as to possibly show user-friendly error messages,
+    // The atomic `^^[A,T]` `toString` values are combined together with Boolean notation -
+    // users should feel free to override `toString` for clarity, as well as to possibly show user-friendly error messages,
     // with the caveat that both `equals` and `hashCode` are (mostly) delegated to the `toString` implementation - so
     // make it unique!
     validPerson.right.get.toString shouldBe
