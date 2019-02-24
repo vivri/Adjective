@@ -7,6 +7,7 @@ import org.scalatest.{FreeSpec, Matchers}
 class AdjectiveSpec extends FreeSpec with Matchers {
 
   "Usage example" in {
+
     // First, we define the precise types that make up our domain/universe/ontology
     object OurOntology {
       // `^^[T] ((t: T) => Boolean)` is the building block of our boolean type algebra
@@ -18,6 +19,7 @@ class AdjectiveSpec extends FreeSpec with Matchers {
       case object JewishLastName    extends ^^[String] (_ endsWith "berg")
 
       // We use boolean algebra to combine base rules into more complex rules
+      // Note the prefix `~` - this denotes negation.
       val FirstNameRule = Name & ~BadName
       val LastNameRule = FirstNameRule & (ScottishLastName | JewishLastName)
     }
@@ -28,10 +30,11 @@ class AdjectiveSpec extends FreeSpec with Matchers {
     // Our Domain is now ready to be used in ADTs and elsewhere.
     case class Person (id: DbId.^^, firstName: FirstNameRule.^^, lastName: LastNameRule.^^)
 
+    // We test membership to an adjective using `?^`. It is also the ADT used to store the result.
     // We string together the inputs, to form an easily-accessible data structure:
     // Either (set of failures, tuple of successes in order of evaluation)
     val validatedInput =
-      (DbId          ?^ 123) ~
+    (DbId          ?^ 123) ~
       (FirstNameRule ?^ "Bilbo") ~
       (LastNameRule  ?^ "McBeggins")
 
@@ -55,8 +58,8 @@ class AdjectiveSpec extends FreeSpec with Matchers {
     // Applying an invalid set of inputs accumulates all rules that failed
     val invalid =
       (DbId          ?^ -1) ~
-      (FirstNameRule ?^ "Bilbo") ~
-      (LastNameRule  ?^ "Ivanov") map Person.tupled
+        (FirstNameRule ?^ "Bilbo") ~
+        (LastNameRule  ?^ "Ivanov") map Person.tupled
 
     // We can access the failures to belong to an adjective directly
     invalid shouldBe Left(Set(~^(DbId,-1), ~^(LastNameRule, "Ivanov")))

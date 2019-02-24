@@ -77,6 +77,7 @@ __^^[Adjective]__ solved both problems, such that:
     // Our Domain is now ready to be used in ADTs and elsewhere.
     case class Person (id: DbId.^^, firstName: FirstNameRule.^^, lastName: LastNameRule.^^)
 
+    // We test membership to an adjective using `?^`. It is also the ADT used to store the result.
     // We string together the inputs, to form an easily-accessible data structure:
     // Either (set of failures, tuple of successes in order of evaluation)
     val validatedInput =
