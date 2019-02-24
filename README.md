@@ -1,4 +1,4 @@
-# ^^[Adjective]
+## `^^[Adjective]`
 
 ##### Programming is about communicating intent; increase your expressivity with Adjective.
 
