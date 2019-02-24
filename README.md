@@ -16,6 +16,9 @@ This prevents us from having native __expressive__ types, such as:
 - Dates in the year 2525
 - ...
 
+Encoding that domain knowledge into ad-hoc validation methods and smart constructors __strips this information from the domain__, 
+often leaving developers confused about valid values, unwritten rules, semantics, and intent. 
+
 And even if we did encode that knowledge into custom classes using smart constructors, we are still missing the ability 
 to natively perform __algebra__ on those types, and __derive new types__ from the basic ones.
 
@@ -41,10 +44,12 @@ __^^[Adjective]__ solved both problems, such that:
 
 1) You can __create arbitrary restrictions__ on base types (a.k.a. __refined__ types, or adjectives in linguistics.)
 1) You can use Boolean Algebra to arbitrarily __create new adjectives__ from existing ones.
+1) The range of valid values, the semantics and intent __are forever captured__ in the `Adjective` type.
 1) It is __lightweight__:
     - Runtime operations are cacheable and predictable.
     - Adjective rules are best stored as singletons.
-    - Minimum boilerplate, and little knowledge of advanced Typelevel features.
+    - Minimum boilerplat. 
+    - Little knowledge of advanced Scala/Typelevel features required.
     - Zero library dependencies.
 
 ### Usage Example
