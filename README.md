@@ -1,25 +1,23 @@
-# \><[Narrowing]
+# ^^[Adjective]
 
-#### _Easily create and utilize precise types in your application._
+##### Programming is an exercise in linguistics; spice-up Scala types with Adjective.
 
 ### The Problem
 
-Scala does not have full-fledged value-dependent typing, and a somewhat limited type-algebra.
+We mostly use base-types for lack of a good alternative, since Scala lacks value-dependent types, and has a somewhat 
+limited type-algebra.
 
-This prevents us from having native _**precise**_ types, such as:
+This prevents us from having native __expressive__ types, such as:
 
 - Natural numbers
 - All IPs in a net mask 
 - Valid emails
 - Obtuse angles
-- Dates in 2018
+- Dates in the year 2018
 - ...
 
-We don't have the native ability to encode our domain, our _**ontology**_, onto the type level in a succinct
-and expressive way. 
-
 And even if we did encode that knowledge into custom classes using smart constructors, we are still missing the ability 
-to natively perform _**algebra**_ on those types, and _**derive new types**_ from the basic ones.
+to natively perform __algebra__ on those types, and __derive new types__ from the basic ones.
 
 For example:
 
@@ -29,8 +27,10 @@ For example:
 - ...
 
 #### To sum up:
-1) We cannot natively apply _**adjectives**_ to our nouns (e.g. _Positive_ number.)
-1) We cannot natively _**combine**_ our adjectives to form new ones (e.g. Positive _AND_ even number.)
+This restricts our ability to express our domain, our __ontology__, in a succinct way.
+
+1) We cannot natively apply __adjectives__ to our nouns (e.g. __Positive__ number.)
+1) We cannot natively __combine__ our adjectives to form new ones (e.g. Positive __AND__ even number.)
 
 You should be able to think of your domain in these terms, but currently, it is very cumbersome, so we mostly end up
 using the raw types, and create weak constraints via opaque ad-hoc validations.

@@ -1,36 +1,21 @@
 package net.vivri.almostfp
 
-import net.vivri.almostfp.?^.{^, ~^}
-import net.vivri.almostfp.Narrow.><
+import net.vivri.almostfp.?^._
+import net.vivri.almostfp.Adjective._
 import org.scalatest.{FreeSpec, Matchers}
 
-class NarrowSpec extends FreeSpec with Matchers {
-
-  "Narrow" - {
-    "it should respect boundaries" in {
-
-      case object Bread extends ><[String] (_.toLowerCase.contains("bread"))
-      case object Pitt  extends ><[String] (_.toLowerCase.contains("pitt"))
-
-      val breadPitt = Bread & Pitt
-
-      breadPitt ?^ "abReaDpItTs" shouldBe ^(breadPitt, "abReaDpItTs")
-      breadPitt ?^ "PiTT BREaD"  shouldBe ^(Bread & Pitt, "PiTT BREaD")
-
-      breadPitt ?^ "pita bread" shouldBe ~^(breadPitt, "pita bread")
-    }
-  }
+class AdjectiveSpec extends FreeSpec with Matchers {
 
   "Usage example" in {
     // First, we define the precise types that make up our domain/universe/ontology
     object OurOntology {
-      // `><[T] ((t: T) => Boolean)` is the building block of our boolean type algebra
-      // read `><[Int]` as `narrowing int`
-      case object DbId              extends ><[Int]    ((id)=> 0 <= id && id < 2000000)
-      case object Name              extends ><[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
-      case object BadName           extends ><[String] (_.toLowerCase.contains("badword"))
-      case object ScottishLastName  extends ><[String] (_ startsWith "Mc")
-      case object JewishLastName    extends ><[String] (_ endsWith "berg")
+      // `^^[T] ((t: T) => Boolean)` is the building block of our boolean type algebra
+      // read `^^[Int]` as `adjective of int`
+      case object DbId              extends ^^[Int]    ((id)=> 0 <= id && id < 2000000)
+      case object Name              extends ^^[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
+      case object BadName           extends ^^[String] (_.toLowerCase.contains("badword"))
+      case object ScottishLastName  extends ^^[String] (_ startsWith "Mc")
+      case object JewishLastName    extends ^^[String] (_ endsWith "berg")
 
       // We use boolean algebra to combine base rules into more complex rules
       val FirstNameRule = Name & ~BadName
@@ -61,7 +46,7 @@ class NarrowSpec extends FreeSpec with Matchers {
 
     // Using toString gives an intuitive peek at the rule algebra
     //
-    // By default, the `><` type class names get printed out - however users should feel free to override `toString`,
+    // The atomic `!` toString names get printed out - users should feel free to override `toString` for better ,
     // with the caveat that both `equals` and `hashCode` are (mostly) delegated to the `toString` implementation - so
     // make it unique!
     validPerson.right.get.toString shouldBe
@@ -79,9 +64,9 @@ class NarrowSpec extends FreeSpec with Matchers {
 
   "Generate ~ DSL (copy and paste in ?^.DSL)" ignore {
 
-    def genBs (i: Int) = (1 to i) map { n => s"N$n <: Narrow[T$n]" } mkString ","
-    def genTs (i: Int) = (1 to i) map { n => s"T$n" } mkString ","
-    def genTup (i: Int) = "(" + ( (1 to i) map { n => s"^[N$n,T$n]"} mkString ",") + ")"
+    def genBs (i: Int) = (1 to i) map { n => s"A$n <: Adjective[N$n]" } mkString ","
+    def genNs (i: Int) = (1 to i) map { n => s"N$n" } mkString ","
+    def genTup (i: Int) = "(" + ( (1 to i) map { n => s"^[A$n,N$n]"} mkString ",") + ")"
     def genABC (i: Int) = (('a' to 'z') take i) mkString ","
     def letter (i: Int) = 'a' + (i-1) toChar
 
@@ -89,12 +74,12 @@ class NarrowSpec extends FreeSpec with Matchers {
       val j = i + 1
       println (
         s"""
-           |implicit class Tup${i}[${genBs(i)},${genTs(i)}] (v: Either[Set[~^[_,_]], ${genTup(i)}]) {
-           |  def ~ [N$j <: Narrow[T$j], T$j] (next: ?^[N$j,T$j]): Either[Set[~^[_,_]], ${genTup(j)}] =
+           |implicit class Tup${i}[${genBs(i)},${genNs(i)}] (v: Either[Set[~^[_,_]], ${genTup(i)}]) {
+           |  def ~ [A$j <: Adjective[N$j], N$j] (next: ?^[A$j,N$j]): Either[Set[~^[_,_]], ${genTup(j)}] =
            |    (v, next) match {
-           |      case (Right((${genABC(i)})), ${letter(j)}: ^[N$j,T$j]) => Right((${genABC(j)}))
-           |      case (Left(fails), x) => Left(fails ++ ?^.failAsSet(x))
-           |      case (Right(_), x)    => Left(?^.failAsSet(x))
+           |      case (Right((${genABC(i)})), ${letter(j)}: ^[A$j,N$j]) => Right((${genABC(j)}))
+           |      case (Left(fails), x) => Left(fails ++ ?^.nonMembershipAsSet(x))
+           |      case (Right(_), x)    => Left(?^.nonMembershipAsSet(x))
            |    }
            |}
            |
