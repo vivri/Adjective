@@ -1,6 +1,6 @@
 # ^^[Adjective]
 
-##### Programming is an exercise in linguistics; spice-up Scala types with Adjective.
+##### Programming is about communicating intent; increase your expressivity with Adjective.
 
 ### The Problem
 
@@ -13,7 +13,7 @@ This prevents us from having native __expressive__ types, such as:
 - All IPs in a net mask 
 - Valid emails
 - Obtuse angles
-- Dates in the year 2018
+- Dates in the year 2525
 - ...
 
 And even if we did encode that knowledge into custom classes using smart constructors, we are still missing the ability 
@@ -35,3 +35,82 @@ This restricts our ability to express our domain, our __ontology__, in a succinc
 You should be able to think of your domain in these terms, but currently, it is very cumbersome, so we mostly end up
 using the raw types, and create weak constraints via opaque ad-hoc validations.
 
+### The Solution
+
+__^^[Adjective]__ solved both problems, such that:
+
+1) You can __create arbitrary restrictions__ on base types (a.k.a. __refined__ types, or adjectives in linguistics.)
+1) You can use Boolean Algebra to arbitrarily __create new adjectives__ from existing ones.
+1) It is __lightweight__:
+    1) Runtime operations are cacheable, 
+    1) Minimum boilerplate, and little knowledge of advanced Typelevel features.
+
+### Usage Example
+
+#### The following is a passing spec:
+
+```scala
+    import net.vivri.adjective.?^._
+    import net.vivri.adjective.Adjective._
+
+    // First, we define the precise types that make up our domain/universe/ontology
+    object OurOntology {
+      // `^^[T] ((t: T) => Boolean)` is the building block of our boolean type algebra
+      // read `^^[Int]` as `adjective of int`
+      case object DbId              extends ^^[Int]    ((id)=> 0 <= id && id < 2000000)
+      case object Name              extends ^^[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
+      case object BadName           extends ^^[String] (_.toLowerCase.contains("badword"))
+      case object ScottishLastName  extends ^^[String] (_ startsWith "Mc")
+      case object JewishLastName    extends ^^[String] (_ endsWith "berg")
+
+      // We use boolean algebra to combine base rules into more complex rules
+      val FirstNameRule = Name & ~BadName
+      val LastNameRule = FirstNameRule & (ScottishLastName | JewishLastName)
+    }
+
+    import DSL._ // so we can use the convenient ~ operator
+    import OurOntology._
+
+    // Our Domain is now ready to be used in ADTs and elsewhere.
+    case class Person (id: DbId.^^, firstName: FirstNameRule.^^, lastName: LastNameRule.^^)
+
+    // We string together the inputs, to form an easily-accessible data structure:
+    // Either (set of failures, tuple of successes in order of evaluation)
+    val validatedInput =
+      (DbId          ?^ 123) ~
+      (FirstNameRule ?^ "Bilbo") ~
+      (LastNameRule  ?^ "McBeggins")
+
+    // The tupled form allows easy application to case classes
+    val validPerson = validatedInput map Person.tupled
+
+    // Using the `*` postfix notation, we can access the base types if/when we wish
+    val baseTypes = validPerson map { person =>
+      (person.id*, person.firstName*, person.lastName*)
+    }
+    baseTypes shouldBe Right((123,"Bilbo","McBeggins"))
+
+    // Using toString gives an intuitive peek at the rule algebra
+    //
+    // The atomic `!` toString names get printed out - users should feel free to override `toString` for better ,
+    // with the caveat that both `equals` and `hashCode` are (mostly) delegated to the `toString` implementation - so
+    // make it unique!
+    validPerson.right.get.toString shouldBe
+      "Person({ 123 ∈ DbId },{ Bilbo ∈ (Name & ~BadName) },{ McBeggins ∈ ((Name & ~BadName) & (ScottishLastName | JewishLastName)) })"
+
+    // Applying an invalid set of inputs accumulates all rules that failed
+    val invalid =
+      (DbId          ?^ -1) ~
+      (FirstNameRule ?^ "Bilbo") ~
+      (LastNameRule  ?^ "Ivanov") map Person.tupled
+
+    // We can access the failures to belong to an adjective directly
+    invalid shouldBe Left(Set(~^(DbId,-1), ~^(LastNameRule, "Ivanov")))
+```
+
+### Literature Review
+
+1) This document would be incomplete without mentioning the excellent [refined](https://github.com/fthomas/refined)
+library. The goals of `refined` are very similar, yet the scope and methods are different. The motivation to create
+`Adjective` came in part from `refined`, and you should be able to assess the relative similarities, differences, strengths
+and weaknesses for yourselves.

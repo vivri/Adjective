@@ -1,6 +1,6 @@
-package net.vivri.almostfp
+package net.vivri.adjective
 
-import net.vivri.almostfp.?^.{^, ~^}
+import net.vivri.adjective.?^.{^, ~^}
 
 import scala.util.Try
 

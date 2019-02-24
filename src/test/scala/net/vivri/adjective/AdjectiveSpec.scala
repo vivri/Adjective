@@ -1,7 +1,7 @@
-package net.vivri.almostfp
+package net.vivri.adjective
 
-import net.vivri.almostfp.?^._
-import net.vivri.almostfp.Adjective._
+import net.vivri.adjective.?^._
+import net.vivri.adjective.Adjective._
 import org.scalatest.{FreeSpec, Matchers}
 
 class AdjectiveSpec extends FreeSpec with Matchers {
@@ -22,7 +22,7 @@ class AdjectiveSpec extends FreeSpec with Matchers {
       val LastNameRule = FirstNameRule & (ScottishLastName | JewishLastName)
     }
 
-    import ?^.DSL._ // so we can use the convenient ~ operator
+    import DSL._ // so we can use the convenient ~ operator
     import OurOntology._
 
     // Our Domain is now ready to be used in ADTs and elsewhere.
@@ -54,11 +54,11 @@ class AdjectiveSpec extends FreeSpec with Matchers {
 
     // Applying an invalid set of inputs accumulates all rules that failed
     val invalid =
-      (DbId      ?^ -1) ~
+      (DbId          ?^ -1) ~
       (FirstNameRule ?^ "Bilbo") ~
       (LastNameRule  ?^ "Ivanov") map Person.tupled
 
-    // We can access the errors directly
+    // We can access the failures to belong to an adjective directly
     invalid shouldBe Left(Set(~^(DbId,-1), ~^(LastNameRule, "Ivanov")))
   }
 
