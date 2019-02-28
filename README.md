@@ -122,4 +122,4 @@ __^^[Adjective]__ solved both problems, such that:
 
 1) This document would be incomplete without mentioning the excellent [refined](https://github.com/fthomas/refined)
 library. The goals of `refined` are very similar, yet the scope and methods are different. The motivation to create
-`Adjective` came in part from `refined`, however `Ajective`'s angle is slightly different, in that it foregoes the ability of compile-time refinement in favor of usability and simplicity.
+`Adjective` came in part from `refined`, however `Adjective`'s angle is slightly different, in that it foregoes the ability of compile-time refinement in favor of usability and simplicity.
