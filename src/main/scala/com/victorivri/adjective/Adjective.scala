@@ -1,6 +1,6 @@
-package net.vivri.adjective
+package com.victorivri.adjective
 
-import net.vivri.adjective.?^.{^, ~^}
+import com.victorivri.adjective.?^.{^, ~^}
 
 import scala.util.Try
 

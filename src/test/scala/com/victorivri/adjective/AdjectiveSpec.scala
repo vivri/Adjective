@@ -1,7 +1,8 @@
-package net.vivri.adjective
+package com.victorivri.adjective
 
-import net.vivri.adjective.?^._
-import net.vivri.adjective.Adjective._
+import com.victorivri.adjective.?^._
+import com.victorivri.adjective.Adjective._
+
 import org.scalatest.{FreeSpec, Matchers}
 
 class AdjectiveSpec extends FreeSpec with Matchers {
