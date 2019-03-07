@@ -60,7 +60,7 @@ sealed trait Adjective[T] {
   /**
     * XOR with another set of type constraints over the same domain
     */
-  def X (expr: Adjective[T]): Adjective[T]
+  def <+> (expr: Adjective[T]): Adjective[T]
 
   /**
     * Validate a value against the constraints.
@@ -89,7 +89,7 @@ object Adjective {
       case c: Adjective.Nuanced[T] => AND(this, ID(c))
     }
 
-    def X (b: Adjective[T]): Adjective[T] = b match {
+    def <+> (b: Adjective[T]): Adjective[T] = b match {
       case e: Expr[T] => XOR(this, e)
       case c: Adjective.Nuanced[T] => XOR(this, ID(c))
     }
@@ -130,7 +130,7 @@ object Adjective {
       case c: Adjective.Nuanced[T] => AND(id, ID(c))
     }
 
-    def X (b: Adjective[T]): Adjective[T] = b match {
+    def <+> (b: Adjective[T]): Adjective[T] = b match {
       case e: Expr[T] => XOR(id, e)
       case c: Adjective.Nuanced[T] => XOR(id, ID(c))
     }

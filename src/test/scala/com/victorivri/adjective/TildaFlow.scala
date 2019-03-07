@@ -2,7 +2,7 @@ package com.victorivri.adjective
 
 import AdjectiveMembership._
 
-object Ext {
+object TildaFlow {
   implicit class TupExt2[A1 <: Adjective[N1],A2 <: Adjective[N2],N1,N2] (v: Either[List[Excludes[_,_]], (Includes[A1,N1],Includes[A2,N2])]) {
     def ~ [A3 <: Adjective[N3], N3] (next: AdjectiveMembership[A3,N3]): Either[List[Excludes[_,_]], (Includes[A1,N1],Includes[A2,N2],Includes[A3,N3])] =
       (v, next) match {

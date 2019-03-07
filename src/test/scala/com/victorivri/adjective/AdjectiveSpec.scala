@@ -12,34 +12,33 @@ class AdjectiveSpec extends FreeSpec with Matchers {
     // First, we define the precise types that make up our domain/universe/ontology
     object PersonOntology {
       // `Nuanced[T]` is the building block of our type algebra
-      case object DbId              extends Nuanced[Int]    ((id)=> 0 <= id && id < 2000000)
-      case object Name              extends Nuanced[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
-      case object BadName           extends Nuanced[String] (_.toLowerCase.contains("badword"))
-      case object ScottishLastName  extends Nuanced[String] (_ startsWith "Mc")
-      case object JewishLastName    extends Nuanced[String] (_ endsWith "berg")
+      case object DbId                extends Nuanced[Int]    ((id)=> 0 <= id && id < 2000000)
+      case object NameSequence        extends Nuanced[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
+      case object DisallowedSequences extends Nuanced[String] (_.toLowerCase.contains("fbomb"))
+      case object ScottishLastName    extends Nuanced[String] (_ startsWith "Mc")
+      case object JewishLastName      extends Nuanced[String] (_ endsWith "berg")
 
-      // We use boolean algebra to combine base rules into more complex rules
-      // Note the prefix `~` denotes negation.
-      val FirstName = Name & ~BadName
-      val LastName  = FirstName & (ScottishLastName | JewishLastName)
+      // We use boolean algebra to combine base adjectives into more nuanced adjectives
+      val LegalName = NameSequence & ~DisallowedSequences // `~X` negates `X`
+      val FirstName = LegalName
+      val SomeHeritageLastName  = LegalName & (ScottishLastName <+> JewishLastName) // `<+>` stands for Xor
     }
 
     import PersonOntology._
-    import Ext._ // so we can use the convenient ~ operator
+    import TildaFlow._ // so we can use the convenient ~ operator
 
-    // Our Domain is now ready to be used in ADTs and elsewhere.
+    // Our Domain is now ready to be used in ADTs, validations and elsewhere.
     // As opposed to monadic types, the preferred way to integrate
-    // Adjective is to use its "successful" type, conveniently accessible
-    // through `ThisAdjective.^`
-    case class Person (id: DbId.^, firstName: FirstName.^, lastName: LastName.^)
+    // Adjective is to use its "successful" type, conveniently accessible through `_.^`
+    case class Person (id: DbId.^, firstName: FirstName.^, lastName: SomeHeritageLastName.^)
 
     // We test membership to an adjective using `mightDescribe`.
     // We string together the inputs, to form an easily-accessible data structure:
     // Either (list of failures, tuple of successes in order of evaluation)
     val validatedInput =
-      (DbId      mightDescribe 123) ~
-      (FirstName mightDescribe "Bilbo") ~
-      (LastName  mightDescribe "McBeggins")
+      (DbId                  mightDescribe 123) ~
+      (FirstName             mightDescribe "Bilbo") ~
+      (SomeHeritageLastName  mightDescribe "McBeggins")
 
     // The tupled form allows easy application to case classes
     val validPerson = validatedInput map Person.tupled
@@ -64,24 +63,24 @@ class AdjectiveSpec extends FreeSpec with Matchers {
     // The atomic [Nuanced#toString] gets printed out.
     // Beware that both `equals` and `hashCode` are (mostly) delegated to the `toString` implementation
     validPerson.right.get.toString shouldBe
-      "Person({ 123 ∈ DbId },{ Bilbo ∈ (Name & ~BadName) },{ McBeggins ∈ ((Name & ~BadName) & (ScottishLastName | JewishLastName)) })"
+      "Person({ 123 ∈ DbId },{ Bilbo ∈ (NameSequence & ~DisallowedSequences) },{ McBeggins ∈ ((NameSequence & ~DisallowedSequences) & (ScottishLastName ⊕ JewishLastName)) })"
 
     // Applying an invalid set of inputs accumulates all rules that failed
     val invalid =
-      (DbId      mightDescribe -1) ~
-      (FirstName mightDescribe "Bilbo") ~
-      (LastName  mightDescribe "Ivanov") map Person.tupled
+      (DbId                  mightDescribe -1) ~
+      (FirstName             mightDescribe "Bilbo") ~
+      (SomeHeritageLastName  mightDescribe "Ivanov") map Person.tupled
 
     // We can access the failures to belong to an adjective directly
-    invalid shouldBe Left(List(Excludes(DbId,-1), Excludes(LastName, "Ivanov")))
+    invalid shouldBe Left(List(Excludes(DbId,-1), Excludes(SomeHeritageLastName, "Ivanov")))
 
-    // Slightly clunky, but we can translate exclusions to e.g. human-readable validation strings
-    // Possibly using a tuple of exclusions as opposed to a simple list would make it easier.
+    // Slightly clunky, but we can translate exclusions to e.g. human-readable validation strings - or anything else
+    // TODO Using tuple of exclusions as opposed to a List that disregards types would make it easier.
     val exclusionMappings =
       invalid.left.map { exclusions =>
         exclusions.map { y => y match {
-            case Excludes(DbId, x)     => s"Bad DB id $x"
-            case Excludes(LastName, x) => s"Bad Last Name $x"
+            case Excludes(DbId, x)                 => s"Bad DB id $x"
+            case Excludes(SomeHeritageLastName, x) => s"Bad Last Name $x"
           }
         }
       }
@@ -89,7 +88,7 @@ class AdjectiveSpec extends FreeSpec with Matchers {
     exclusionMappings shouldBe Left(List("Bad DB id -1", "Bad Last Name Ivanov"))
   }
 
-  "Generate ~ Ext (copy and paste in AdjectiveMembership.Ext)" ignore {
+  "Generate ~ TildaFlow (copy and paste in AdjectiveMembership.TildaFlow)" ignore {
 
     def genAs (i: Int) = (1 to i) map { n => s"A$n <: Adjective[N$n]" } mkString ","
     def genNs (i: Int) = (1 to i) map { n => s"N$n" } mkString ","

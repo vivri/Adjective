@@ -1,44 +1,42 @@
 ## `Adjective.^`
 
-#### Programming is an exercise in linguistics; spice-up Scala types with Adjective
+### Programming is an exercise in linguistics; spice-up Scala types with Adjective
 
 ### Maven Central Artifact
 ```scala
-val adjectiveVersion = "0.2"
+val adjectiveVersion = "0.3"
 libraryDependencies += "com.victorivri" %% "adjective" % adjectiveVersion
 ```
 
 ### At a Glance
 ```scala
-    // First, we define the precise types that make up our domain/universe/ontology
-    object PersonOntology {
-      // `Nuanced[T]` is the building block of our type algebra
-      case object DbId              extends Nuanced[Int]    ((id)=> 0 <= id && id < 2000000)
-      case object Name              extends Nuanced[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
-      case object BadName           extends Nuanced[String] (_.toLowerCase.contains("badword"))
-      case object ScottishLastName  extends Nuanced[String] (_ startsWith "Mc")
-      case object JewishLastName    extends Nuanced[String] (_ endsWith "berg")
+object PersonOntology {
+  // `Nuanced[T]` is the building block of our type algebra
+  case object DbId                extends Nuanced[Int]    ((id)=> 0 <= id && id < 2000000)
+  case object NameSequence        extends Nuanced[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
+  case object DisallowedSequences extends Nuanced[String] (_.toLowerCase.contains("fbomb"))
+  case object ScottishLastName    extends Nuanced[String] (_ startsWith "Mc")
+  case object JewishLastName      extends Nuanced[String] (_ endsWith "berg")
 
-      // We use boolean algebra to combine base rules into more complex rules
-      // Note the prefix `~` denotes negation.
-      val FirstName = Name & ~BadName
-      val LastName  = FirstName & (ScottishLastName | JewishLastName)
-    }
+  // We use boolean algebra to combine base adjectives into more nuanced adjectives
+  val LegalName = NameSequence & ~DisallowedSequences // `~X` negates `X`
+  val FirstName = LegalName
+  val SomeHeritageLastName  = LegalName & (ScottishLastName <+> JewishLastName) // `<+>` stands for Xor
+}
 
-    import PersonOntology._
-    import Extensions._ // so we can use the convenient ~ operator
+import PersonOntology._
+import TildaFlow._ // so we can use the convenient ~ operator
 
-    // Our Domain is now ready to be used in ADTs and elsewhere.
-    // As opposed to monadic types, the preferred way to integrate
-    // Adjective is to use its "successful" type, conveniently accessible
-    // through `ThisAdjective.^`
-    case class Person (id: DbId.^, firstName: FirstName.^, lastName: LastName.^)
+// Our Domain is now ready to be used in ADTs, validations and elsewhere.
+// As opposed to monadic types, the preferred way to integrate
+// Adjective is to use its "successful" type, conveniently accessible through `_.^`
+case class Person (id: DbId.^, firstName: FirstName.^, lastName: SomeHeritageLastName.^)
 ```
 
 ### The Problem
 
-We mostly use base-types for lack of a good alternative, since Scala lacks value-dependent types, 
-and has an arcane type-algebra.
+We should be able to think and express our domain in these terms, but currently, it is very cumbersome, so we mostly end up
+using the raw types, and create weak constraints via opaque ad-hoc validations.
 
 This prevents us from having native __expressive__ types, such as:
 
@@ -58,28 +56,25 @@ to natively perform __algebra__ on those types, and __derive new types__ from th
 For example:
 
 - __Router rule range__: NetMask1 __OR__ NetMask2 __AND NOT__ NetMask3
-- __Internal email__: Valid email address __AND__ Company email address __OR__ Subsidiary company email address 
+- __Internal email__: Valid email address __AND__ Company hostname __OR__ Subsidiary hostname
 - __Valid Names__: Capitalized strings __AND__ Strings of length 2 to 30 __AND__ Strings comprised of only [a-zA-Z]
 - ...
 
 #### To sum up:
-This restricts our ability to express our domain, our __ontology__, in a succinct way.
+The current landscape restricts our ability to express our domain, our __ontology__, in a succinct and intuitive way.
 
 1) We cannot natively apply __adjectives__ to our nouns (e.g. __Positive__ number.)
 1) We cannot natively __combine__ our adjectives to form new ones (e.g. Positive __AND__ even number.)
-1) We cannot easily maintain semantic information in our types without custom wrapper-types.
-
-We should be able to think and express our domain in these terms, but currently, it is very cumbersome, so we mostly end up
-using the raw types, and create weak constraints via opaque ad-hoc validations.
+1) We cannot easily maintain semantic information in our types without clunky, non-composable custom wrapper-types.
 
 ### The Solution
 
-__^^[Adjective]__ solved both problems, such that:
+__Adjective.^__ solved these problems, such that:
 
 1) You can __create arbitrary restrictions__ on base types (a.k.a. __refined__ types, or adjectives in linguistics.)
-1) You can use Boolean Algebra to arbitrarily __create new adjectives__ from existing ones.
+1) You can use __Boolean Algebra__ to arbitrarily __create new adjectives__ from existing ones at runtime.
 1) The range of valid values, the semantics and intent __are forever captured__ in the `Adjective`.
-1) It is __lightweight__:
+1) It is (rather) __lightweight__:
     - Runtime operations are cacheable and predictable (TODO: benchmark).
     - Adjective rules are best stored as singletons to conserve memory footprint and allocation.
     - Minimum boilerplate. 
@@ -91,38 +86,38 @@ __^^[Adjective]__ solved both problems, such that:
 #### The following is a passing spec:
 
 ```scala
+"Usage example" in {
 
     // First, we define the precise types that make up our domain/universe/ontology
     object PersonOntology {
       // `Nuanced[T]` is the building block of our type algebra
-      case object DbId              extends Nuanced[Int]    ((id)=> 0 <= id && id < 2000000)
-      case object Name              extends Nuanced[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
-      case object BadName           extends Nuanced[String] (_.toLowerCase.contains("badword"))
-      case object ScottishLastName  extends Nuanced[String] (_ startsWith "Mc")
-      case object JewishLastName    extends Nuanced[String] (_ endsWith "berg")
+      case object DbId                extends Nuanced[Int]    ((id)=> 0 <= id && id < 2000000)
+      case object NameSequence        extends Nuanced[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
+      case object DisallowedSequences extends Nuanced[String] (_.toLowerCase.contains("fbomb"))
+      case object ScottishLastName    extends Nuanced[String] (_ startsWith "Mc")
+      case object JewishLastName      extends Nuanced[String] (_ endsWith "berg")
 
-      // We use boolean algebra to combine base rules into more complex rules
-      // Note the prefix `~` denotes negation.
-      val FirstName = Name & ~BadName
-      val LastName  = FirstName & (ScottishLastName | JewishLastName)
+      // We use boolean algebra to combine base adjectives into more nuanced adjectives
+      val LegalName = NameSequence & ~DisallowedSequences // `~X` negates `X`
+      val FirstName = LegalName
+      val SomeHeritageLastName  = LegalName & (ScottishLastName <+> JewishLastName) // `<+>` stands for Xor
     }
 
     import PersonOntology._
-    import Extensions._ // so we can use the convenient ~ operator
+    import TildaFlow._ // so we can use the convenient ~ operator
 
-    // Our Domain is now ready to be used in ADTs and elsewhere.
+    // Our Domain is now ready to be used in ADTs, validations and elsewhere.
     // As opposed to monadic types, the preferred way to integrate
-    // Adjective is to use its "successful" type, conveniently accessible
-    // through `ThisAdjective.^`
-    case class Person (id: DbId.^, firstName: FirstName.^, lastName: LastName.^)
+    // Adjective is to use its "successful" type, conveniently accessible through `_.^`
+    case class Person (id: DbId.^, firstName: FirstName.^, lastName: SomeHeritageLastName.^)
 
     // We test membership to an adjective using `mightDescribe`.
     // We string together the inputs, to form an easily-accessible data structure:
     // Either (list of failures, tuple of successes in order of evaluation)
     val validatedInput =
-      (DbId      mightDescribe 123) ~
-      (FirstName mightDescribe "Bilbo") ~
-      (LastName  mightDescribe "McBeggins")
+      (DbId                  mightDescribe 123) ~
+      (FirstName             mightDescribe "Bilbo") ~
+      (SomeHeritageLastName  mightDescribe "McBeggins")
 
     // The tupled form allows easy application to case classes
     val validPerson = validatedInput map Person.tupled
@@ -147,29 +142,30 @@ __^^[Adjective]__ solved both problems, such that:
     // The atomic [Nuanced#toString] gets printed out.
     // Beware that both `equals` and `hashCode` are (mostly) delegated to the `toString` implementation
     validPerson.right.get.toString shouldBe
-      "Person({ 123 ∈ DbId },{ Bilbo ∈ (Name & ~BadName) },{ McBeggins ∈ ((Name & ~BadName) & (ScottishLastName | JewishLastName)) })"
+      "Person({ 123 ∈ DbId },{ Bilbo ∈ (NameSequence & ~DisallowedSequences) },{ McBeggins ∈ ((NameSequence & ~DisallowedSequences) & (ScottishLastName | JewishLastName)) })"
 
     // Applying an invalid set of inputs accumulates all rules that failed
     val invalid =
-      (DbId      mightDescribe -1) ~
-      (FirstName mightDescribe "Bilbo") ~
-      (LastName  mightDescribe "Ivanov") map Person.tupled
+      (DbId                  mightDescribe -1) ~
+      (FirstName             mightDescribe "Bilbo") ~
+      (SomeHeritageLastName  mightDescribe "Ivanov") map Person.tupled
 
     // We can access the failures to belong to an adjective directly
-    invalid shouldBe Left(List(Excludes(DbId,-1), Excludes(LastName, "Ivanov")))
+    invalid shouldBe Left(List(Excludes(DbId,-1), Excludes(SomeHeritageLastName, "Ivanov")))
 
-    // Slightly clunky, but we can translate exclusions to e.g. human-readable validation strings
-    // Possibly using a tuple of exclusions as opposed to a simple list would make it easier.
+    // Slightly clunky, but we can translate exclusions to e.g. human-readable validation strings - or anything else
+    // TODO Using tuple of exclusions as opposed to a List that disregards types would make it easier.
     val exclusionMappings =
       invalid.left.map { exclusions =>
         exclusions.map { y => y match {
-            case Excludes(DbId, x)     => s"Bad DB id $x"
-            case Excludes(LastName, x) => s"Bad Last Name $x"
+            case Excludes(DbId, x)                 => s"Bad DB id $x"
+            case Excludes(SomeHeritageLastName, x) => s"Bad Last Name $x"
           }
         }
       }
 
     exclusionMappings shouldBe Left(List("Bad DB id -1", "Bad Last Name Ivanov"))
+  }
 ```
 
 ### Literature Review
