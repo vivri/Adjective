@@ -2,16 +2,19 @@
 
 ### Programming is an exercise in linguistics; spice-up Scala types with Adjective
 
-### Maven Central Artifact
+### Sonatype Artifact
+__Currently builds for `2.12.x`__
 ```scala
-val adjectiveVersion = "0.3"
+val adjectiveVersion = "0.4"
 libraryDependencies += "com.victorivri" %% "adjective" % adjectiveVersion
 ```
 
 ### At a Glance
 ```scala
+// First, we define the precise types that make up our domain/universe/ontology
 object PersonOntology {
   // `Nuanced[T]` is the building block of our type algebra
+  // Try to make them as atomic as possible
   case object DbId                extends Nuanced[Int]    ((id)=> 0 <= id && id < 2000000)
   case object NameSequence        extends Nuanced[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
   case object DisallowedSequences extends Nuanced[String] (_.toLowerCase.contains("fbomb"))
@@ -21,11 +24,10 @@ object PersonOntology {
   // We use boolean algebra to combine base adjectives into more nuanced adjectives
   val LegalName = NameSequence & ~DisallowedSequences // `~X` negates `X`
   val FirstName = LegalName
-  val SomeHeritageLastName  = LegalName & (ScottishLastName <+> JewishLastName) // `<+>` stands for Xor
+  val SomeHeritageLastName = LegalName & (ScottishLastName <+> JewishLastName) // `<+>` stands for Xor, ⊕ is the math notation
 }
 
 import PersonOntology._
-import TildaFlow._ // so we can use the convenient ~ operator
 
 // Our Domain is now ready to be used in ADTs, validations and elsewhere.
 // As opposed to monadic types, the preferred way to integrate
@@ -86,11 +88,12 @@ __Adjective.^__ solved these problems, such that:
 #### The following is a passing spec:
 
 ```scala
-"Usage example" in {
+  "Usage example" in {
 
     // First, we define the precise types that make up our domain/universe/ontology
     object PersonOntology {
       // `Nuanced[T]` is the building block of our type algebra
+      // Try to make them as atomic as possible
       case object DbId                extends Nuanced[Int]    ((id)=> 0 <= id && id < 2000000)
       case object NameSequence        extends Nuanced[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
       case object DisallowedSequences extends Nuanced[String] (_.toLowerCase.contains("fbomb"))
@@ -100,7 +103,7 @@ __Adjective.^__ solved these problems, such that:
       // We use boolean algebra to combine base adjectives into more nuanced adjectives
       val LegalName = NameSequence & ~DisallowedSequences // `~X` negates `X`
       val FirstName = LegalName
-      val SomeHeritageLastName  = LegalName & (ScottishLastName <+> JewishLastName) // `<+>` stands for Xor
+      val SomeHeritageLastName = LegalName & (ScottishLastName <+> JewishLastName) // `<+>` stands for Xor, ⊕ is the math notation
     }
 
     import PersonOntology._
@@ -122,19 +125,25 @@ __Adjective.^__ solved these problems, such that:
     // The tupled form allows easy application to case classes
     val validPerson = validatedInput map Person.tupled
 
+    // Best way to access is via Either methods or pattern match
     validPerson match {
-      case Right (Person(id,fname,lname)) =>
-        id.base    shouldBe 123
-        fname.base shouldBe "Bilbo"
-        lname.base shouldBe "McBeggins"
-
-      case Left(_) => throw new RuntimeException()
+      case Right(Person(id, firstName, lastName)) => // as you'd expect
+      case _ => throw new RuntimeException()
     }
 
-    // Using the `*` postfix notation, we can access the base types if/when we wish
+    // Trying to precisely type the Includes/Excludes exposes a
+    // little bit of clunkiness in the path-dependent types of `val`s
+    validPerson shouldBe Right(
+      Person(
+        Includes(DbId,123), // this works great because DbId is a type, not a `val`
+        Includes(FirstName, "Bilbo").asInstanceOf[FirstName.^], // ouch!
+        Includes(SomeHeritageLastName, "McBeggins").asInstanceOf[SomeHeritageLastName.^])) // one more ouch.
+
+    // Using the `_.base` we can access the base types if/when we wish
     val baseTypes = validPerson map { person =>
       (person.id.base, person.firstName.base, person.lastName.base)
     }
+
     baseTypes shouldBe Right((123,"Bilbo","McBeggins"))
 
     // Using toString gives an intuitive peek at the rule algebra
@@ -142,7 +151,7 @@ __Adjective.^__ solved these problems, such that:
     // The atomic [Nuanced#toString] gets printed out.
     // Beware that both `equals` and `hashCode` are (mostly) delegated to the `toString` implementation
     validPerson.right.get.toString shouldBe
-      "Person({ 123 ∈ DbId },{ Bilbo ∈ (NameSequence & ~DisallowedSequences) },{ McBeggins ∈ ((NameSequence & ~DisallowedSequences) & (ScottishLastName | JewishLastName)) })"
+      "Person({ 123 ∈ DbId },{ Bilbo ∈ (NameSequence & ~DisallowedSequences) },{ McBeggins ∈ ((NameSequence & ~DisallowedSequences) & (ScottishLastName ⊕ JewishLastName)) })"
 
     // Applying an invalid set of inputs accumulates all rules that failed
     val invalid =
@@ -166,6 +175,7 @@ __Adjective.^__ solved these problems, such that:
 
     exclusionMappings shouldBe Left(List("Bad DB id -1", "Bad Last Name Ivanov"))
   }
+
 ```
 
 ### Literature Review

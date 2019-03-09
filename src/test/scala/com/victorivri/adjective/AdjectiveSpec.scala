@@ -1,8 +1,7 @@
 package com.victorivri.adjective
 
-import com.victorivri.adjective.AdjectiveMembership._
 import com.victorivri.adjective.Adjective._
-
+import com.victorivri.adjective.AdjectiveMembership._
 import org.scalatest.{FreeSpec, Matchers}
 
 class AdjectiveSpec extends FreeSpec with Matchers {
@@ -12,6 +11,7 @@ class AdjectiveSpec extends FreeSpec with Matchers {
     // First, we define the precise types that make up our domain/universe/ontology
     object PersonOntology {
       // `Nuanced[T]` is the building block of our type algebra
+      // Try to make them as atomic as possible
       case object DbId                extends Nuanced[Int]    ((id)=> 0 <= id && id < 2000000)
       case object NameSequence        extends Nuanced[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
       case object DisallowedSequences extends Nuanced[String] (_.toLowerCase.contains("fbomb"))
@@ -21,7 +21,7 @@ class AdjectiveSpec extends FreeSpec with Matchers {
       // We use boolean algebra to combine base adjectives into more nuanced adjectives
       val LegalName = NameSequence & ~DisallowedSequences // `~X` negates `X`
       val FirstName = LegalName
-      val SomeHeritageLastName  = LegalName & (ScottishLastName <+> JewishLastName) // `<+>` stands for Xor
+      val SomeHeritageLastName = LegalName & (ScottishLastName <+> JewishLastName) // `<+>` stands for Xor, ⊕ is the math notation
     }
 
     import PersonOntology._
@@ -43,19 +43,25 @@ class AdjectiveSpec extends FreeSpec with Matchers {
     // The tupled form allows easy application to case classes
     val validPerson = validatedInput map Person.tupled
 
+    // Best way to access is via Either methods or pattern match
     validPerson match {
-      case Right (Person(id,fname,lname)) =>
-        id.base    shouldBe 123
-        fname.base shouldBe "Bilbo"
-        lname.base shouldBe "McBeggins"
-
-      case Left(_) => throw new RuntimeException()
+      case Right(Person(id, firstName, lastName)) => // as you'd expect
+      case _ => throw new RuntimeException()
     }
 
-    // Using the `*` postfix notation, we can access the base types if/when we wish
+    // Trying to precisely type the Includes/Excludes exposes a
+    // little bit of clunkiness in the path-dependent types of `val`s
+    validPerson shouldBe Right(
+      Person(
+        Includes(DbId,123), // this works great because DbId is a type, not a `val`
+        Includes(FirstName, "Bilbo").asInstanceOf[FirstName.^], // ouch!
+        Includes(SomeHeritageLastName, "McBeggins").asInstanceOf[SomeHeritageLastName.^])) // one more ouch.
+
+    // Using the `_.base` we can access the base types if/when we wish
     val baseTypes = validPerson map { person =>
       (person.id.base, person.firstName.base, person.lastName.base)
     }
+
     baseTypes shouldBe Right((123,"Bilbo","McBeggins"))
 
     // Using toString gives an intuitive peek at the rule algebra

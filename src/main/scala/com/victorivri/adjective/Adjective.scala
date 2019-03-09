@@ -28,7 +28,7 @@ sealed trait Adjective[T] {
   /**
     * The precise type of AdjectiveMembership as applies to this Adjective
     */
-  type ? = this.Type AdjectiveMembership this.Noun
+  type MembershipCheck = this.Type AdjectiveMembership this.Noun
 
   /**
     * The precise type of success of evaluating this Adjective against a value
@@ -67,29 +67,29 @@ sealed trait Adjective[T] {
     *
     * The result should either be `this.^` if successful, or `this.~~` if failed
     */
-  def mightDescribe (v: T): AdjectiveMembership[Type,T]
+  def mightDescribe (v: T): MembershipCheck
 }
 
 object Adjective {
-  type InclusionRule[T] = T => Boolean
+  type Nuance[T] = T => Boolean
 
   /**
     * Represents a composite expression of type `Adjective`
     */
   sealed trait Expr[T] extends Adjective[T] {
-    def unary_~ : Adjective[T] = NOT(this)
+    override def unary_~ : Adjective[T] = NOT(this)
 
-    def | (b: Adjective[T]): Adjective[T] = b match {
+    override def | (b: Adjective[T]): Adjective[T] = b match {
       case e: Expr[T] => OR(this, e)
       case c: Adjective.Nuanced[T] => OR(this, ID(c))
     }
 
-    def & (b: Adjective[T]): Adjective[T] = b match {
+    override def & (b: Adjective[T]): Adjective[T] = b match {
       case e: Expr[T] => AND(this, e)
       case c: Adjective.Nuanced[T] => AND(this, ID(c))
     }
 
-    def <+> (b: Adjective[T]): Adjective[T] = b match {
+    override def <+> (b: Adjective[T]): Adjective[T] = b match {
       case e: Expr[T] => XOR(this, e)
       case c: Adjective.Nuanced[T] => XOR(this, ID(c))
     }
@@ -107,35 +107,33 @@ object Adjective {
   /**
     * Represents the atomic building block of [Adjective].
     */
-  class Nuanced[T](val rule: InclusionRule[T]) extends Adjective[T] {
+  class Nuanced[T](val rule: Nuance[T]) extends Adjective[T] {
 
     override type Type = this.type
 
     private val id = ID(this)
 
-    override def mightDescribe (value: T): AdjectiveMembership[Type,T] = rule(value) match {
+    override def mightDescribe (value: T): MembershipCheck = rule(value) match {
       case true  => Includes(this, value)
       case false => Excludes(this, value)
     }
 
-    def unary_~ : Adjective[T] = NOT(id)
+    override def unary_~ : Adjective[T] = NOT(id)
 
-    def | (b: Adjective[T]): Adjective[T] = b match {
+    override def | (b: Adjective[T]): Adjective[T] = b match {
       case e: Adjective.Expr[T] => OR(id, e)
       case c: Adjective.Nuanced[T] => OR(id, ID(c))
     }
 
-    def & (b: Adjective[T]): Adjective[T] = b match {
+    override def & (b: Adjective[T]): Adjective[T] = b match {
       case e: Expr[T] => AND(id, e)
       case c: Adjective.Nuanced[T] => AND(id, ID(c))
     }
 
-    def <+> (b: Adjective[T]): Adjective[T] = b match {
+    override def <+> (b: Adjective[T]): Adjective[T] = b match {
       case e: Expr[T] => XOR(id, e)
       case c: Adjective.Nuanced[T] => XOR(id, ID(c))
     }
-
-    lazy val pprint = id.pprint
   }
 
   case class T[Q]() extends Expr[Q] {
@@ -243,7 +241,7 @@ sealed trait AdjectiveMembership[N <: Adjective[T], T] {
 
 object AdjectiveMembership {
 
-  def apply[N <: Adjective[T], T](adjective: N, value: T): adjective.? = adjective mightDescribe value
+  def apply[N <: Adjective[T], T](adjective: N, value: T): adjective.MembershipCheck = adjective mightDescribe value
 
   def unapply[N <: Adjective[T], T](arg: AdjectiveMembership[N,T]): Option[(N,T)] = Some((arg.adjective,arg.base))
 
