@@ -1,6 +1,22 @@
-scalaVersion := "2.12.8"
+lazy val root = project.in(file("./library")).
+  aggregate(js, jvm).
+  settings(
+    publish := {},
+    publishLocal := {}
+  )
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+lazy val library = crossProject.in(file("./library")).settings(
+  scalaVersion := "2.12.6",
+  libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.5" % "test",
+).jsSettings(
+  // JS-specific settings here
+).jvmSettings(
+  // JVM-specific settings here
+)
+
+lazy val js = library.js
+
+lazy val jvm = library.jvm
 
 
 // PUBLISHING-RELATED
@@ -44,3 +60,5 @@ ThisBuild / publishTo := {
 ThisBuild / publishMavenStyle := true
 
 credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credential")
+
+useGpg := true
