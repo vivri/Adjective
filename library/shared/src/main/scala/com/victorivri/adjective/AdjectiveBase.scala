@@ -1,6 +1,6 @@
 package com.victorivri.adjective
 
-import com.victorivri.adjective.AdjectiveMembership.{Includes, Excludes}
+import com.victorivri.adjective.AdjectiveMembership.{Excludes, Includes}
 
 import scala.util.Try
 
@@ -13,7 +13,7 @@ import scala.util.Try
   *
   * See [AdjectiveSpec] `Usage example` for a complete, up-to-date, example of intended usage.
   */
-sealed trait Adjective[T] {
+sealed trait AdjectiveBase[T] {
   /**
     * The type of the value
     */
@@ -22,21 +22,21 @@ sealed trait Adjective[T] {
   /**
     * The precise type of this instance
     */
-  type Type <: Adjective[T]
+  type Type <: AdjectiveBase[T]
 
 
   /**
-    * The precise type of AdjectiveMembership as applies to this Adjective
+    * The precise type of AdjectiveMembership as applies to this AdjectiveBase
     */
   type MembershipCheck = this.Type AdjectiveMembership this.Noun
 
   /**
-    * The precise type of success of evaluating this Adjective against a value
+    * The precise type of success of evaluating this AdjectiveBase against a value
     */
   type ^ = this.Type Includes this.Noun
 
   /**
-    * The precise type of failure of evaluating this Adjective against a value
+    * The precise type of failure of evaluating this AdjectiveBase against a value
     */
   type ~ = this.Type Excludes this.Noun
 
@@ -45,22 +45,22 @@ sealed trait Adjective[T] {
     *
     * Can be used without the `.`, e.g.: `~ThisRule`
     */
-  def unary_~ : Adjective[T]
+  def unary_~ : AdjectiveBase[T]
 
   /**
     * Or/Union with another set of type constraints over the same domain
     */
-  def | (expr: Adjective[T]): Adjective[T]
+  def | (expr: AdjectiveBase[T]): AdjectiveBase[T]
 
   /**
     * And/Intersect with another set of type constraints over the same domain
     */
-  def & (expr: Adjective[T]): Adjective[T]
+  def & (expr: AdjectiveBase[T]): AdjectiveBase[T]
 
   /**
     * XOR with another set of type constraints over the same domain
     */
-  def <+> (expr: Adjective[T]): Adjective[T]
+  def <+> (expr: AdjectiveBase[T]): AdjectiveBase[T]
 
   /**
     * Validate a value against the constraints.
@@ -70,28 +70,28 @@ sealed trait Adjective[T] {
   def mightDescribe (v: T): MembershipCheck
 }
 
-object Adjective {
+object AdjectiveBase {
   type Nuance[T] = T => Boolean
 
   /**
-    * Represents a composite expression of type `Adjective`
+    * Represents a composite expression of type `AdjectiveBase`
     */
-  sealed trait Expr[T] extends Adjective[T] {
-    override def unary_~ : Adjective[T] = NOT(this)
+  sealed trait AdjectiveExpr[T] extends AdjectiveBase[T] {
+    override def unary_~ : AdjectiveBase[T] = NOT(this)
 
-    override def | (b: Adjective[T]): Adjective[T] = b match {
-      case e: Expr[T] => OR(this, e)
-      case c: Adjective.Nuanced[T] => OR(this, ID(c))
+    override def | (b: AdjectiveBase[T]): AdjectiveBase[T] = b match {
+      case e: AdjectiveExpr[T] => OR(this, e)
+      case c: AdjectiveBase.Adjective[T] => OR(this, ID(c))
     }
 
-    override def & (b: Adjective[T]): Adjective[T] = b match {
-      case e: Expr[T] => AND(this, e)
-      case c: Adjective.Nuanced[T] => AND(this, ID(c))
+    override def & (b: AdjectiveBase[T]): AdjectiveBase[T] = b match {
+      case e: AdjectiveExpr[T] => AND(this, e)
+      case c: AdjectiveBase.Adjective[T] => AND(this, ID(c))
     }
 
-    override def <+> (b: Adjective[T]): Adjective[T] = b match {
-      case e: Expr[T] => XOR(this, e)
-      case c: Adjective.Nuanced[T] => XOR(this, ID(c))
+    override def <+> (b: AdjectiveBase[T]): AdjectiveBase[T] = b match {
+      case e: AdjectiveExpr[T] => XOR(this, e)
+      case c: AdjectiveBase.Adjective[T] => XOR(this, ID(c))
     }
 
     val pprint: String
@@ -99,15 +99,15 @@ object Adjective {
     override def toString(): String = pprint
 
     override def equals(o: scala.Any): Boolean =
-      Try(o.asInstanceOf[Expr[T]].pprint == pprint) getOrElse false
+      Try(o.asInstanceOf[AdjectiveExpr[T]].pprint == pprint) getOrElse false
 
     override def hashCode(): Int = pprint.hashCode
   }
 
   /**
-    * Represents the atomic building block of [Adjective].
+    * Represents the atomic building block of [AdjectiveBase].
     */
-  class Nuanced[T](val rule: Nuance[T]) extends Adjective[T] {
+  class Adjective[T](val rule: Nuance[T]) extends AdjectiveBase[T] {
 
     override type Type = this.type
 
@@ -118,37 +118,37 @@ object Adjective {
       case false => Excludes(this, value)
     }
 
-    override def unary_~ : Adjective[T] = NOT(id)
+    override def unary_~ : AdjectiveBase[T] = NOT(id)
 
-    override def | (b: Adjective[T]): Adjective[T] = b match {
-      case e: Adjective.Expr[T] => OR(id, e)
-      case c: Adjective.Nuanced[T] => OR(id, ID(c))
+    override def | (b: AdjectiveBase[T]): AdjectiveBase[T] = b match {
+      case e: AdjectiveBase.AdjectiveExpr[T] => OR(id, e)
+      case c: AdjectiveBase.Adjective[T] => OR(id, ID(c))
     }
 
-    override def & (b: Adjective[T]): Adjective[T] = b match {
-      case e: Expr[T] => AND(id, e)
-      case c: Adjective.Nuanced[T] => AND(id, ID(c))
+    override def & (b: AdjectiveBase[T]): AdjectiveBase[T] = b match {
+      case e: AdjectiveExpr[T] => AND(id, e)
+      case c: AdjectiveBase.Adjective[T] => AND(id, ID(c))
     }
 
-    override def <+> (b: Adjective[T]): Adjective[T] = b match {
-      case e: Expr[T] => XOR(id, e)
-      case c: Adjective.Nuanced[T] => XOR(id, ID(c))
+    override def <+> (b: AdjectiveBase[T]): AdjectiveBase[T] = b match {
+      case e: AdjectiveExpr[T] => XOR(id, e)
+      case c: AdjectiveBase.Adjective[T] => XOR(id, ID(c))
     }
   }
 
-  case class T[Q]() extends Expr[Q] {
+  case class T[Q]() extends AdjectiveExpr[Q] {
     override type Type = this.type
     override def mightDescribe(v: Q) = Includes(this, v)
     override val pprint: String = "Q"
   }
 
-  case class F[Q]() extends Expr[Q] {
+  case class F[Q]() extends AdjectiveExpr[Q] {
     override type Type = this.type
     override def mightDescribe(v: Q) = Excludes(this, v)
     override val pprint: String = "F"
   }
 
-  case class ID[T](adjective: Adjective.Nuanced[T]) extends Expr[T] {
+  case class ID[T](adjective: AdjectiveBase.Adjective[T]) extends AdjectiveExpr[T] {
     override type Type = this.type
     override def mightDescribe(v: T) =
       if (adjective rule v) Includes(this, v)
@@ -157,7 +157,7 @@ object Adjective {
     override val pprint: String = adjective.toString
   }
 
-  case class NOT[T](expr: Expr[T]) extends Expr[T] {
+  case class NOT[T](expr: AdjectiveExpr[T]) extends AdjectiveExpr[T] {
     override type Type = this.type
     override def mightDescribe(v: T) = {
       expr mightDescribe v match {
@@ -169,7 +169,7 @@ object Adjective {
     override val pprint: String = s"~${expr.pprint}"
   }
 
-  case class OR[T](exprA: Expr[T], exprB: Expr[T]) extends Expr[T] {
+  case class OR[T](exprA: AdjectiveExpr[T], exprB: AdjectiveExpr[T]) extends AdjectiveExpr[T] {
     override type Type = this.type
     override def mightDescribe(v: T) =
       (exprA mightDescribe v, exprB mightDescribe v) match {
@@ -182,7 +182,7 @@ object Adjective {
     override val pprint: String = s"(${exprA.pprint} | ${exprB.pprint})"
   }
 
-  case class AND[T](exprA: Expr[T], exprB: Expr[T]) extends Expr[T] {
+  case class AND[T](exprA: AdjectiveExpr[T], exprB: AdjectiveExpr[T]) extends AdjectiveExpr[T] {
     override type Type = this.type
     override def mightDescribe(v: T) =
       (exprA mightDescribe v, exprB mightDescribe v) match {
@@ -195,7 +195,7 @@ object Adjective {
     override val pprint: String = s"(${exprA.pprint} & ${exprB.pprint})"
   }
 
-  case class XOR[T](exprA: Expr[T], exprB: Expr[T]) extends Expr[T] {
+  case class XOR[T](exprA: AdjectiveExpr[T], exprB: AdjectiveExpr[T]) extends AdjectiveExpr[T] {
     override type Type = this.type
     override def mightDescribe(v: T) = {
       (exprA mightDescribe v, exprB mightDescribe v) match {
@@ -213,19 +213,19 @@ object Adjective {
 }
 
 /**
-  * Represents the idea of value membership in an [Adjective].
+  * Represents the idea of value membership in an [AdjectiveBase].
   */
-sealed trait AdjectiveMembership[N <: Adjective[T], T] {
+sealed trait AdjectiveMembership[N <: AdjectiveBase[T], T] {
   val adjective : N
   val base : T
   val pprint: String
 
-  lazy val lift : Either[Excludes[N,T], Includes[N,T]] = this match {
+  lazy val toEither: Either[Excludes[N,T], Includes[N,T]] = this match {
     case x: Includes[N,T] => Right(x)
     case x: Excludes[N,T] => Left(x)
   }
 
-  def ~ [N2 <: Adjective[T2], T2] (next: AdjectiveMembership[N2,T2]): Either[List[Excludes[_,_]],(Includes[N,T], Includes[N2,T2])] =
+  def ~ [N2 <: AdjectiveBase[T2], T2] (next: AdjectiveMembership[N2,T2]): Either[List[Excludes[_,_]],(Includes[N,T], Includes[N2,T2])] =
     (this, next) match {
       case (a: Includes[N, T], b: Includes[N2, T2]) => Right((a, b))
       case (a,b) => Left(AdjectiveMembership.nonMembershipAsList(a) ::: AdjectiveMembership.nonMembershipAsList(b))
@@ -241,25 +241,30 @@ sealed trait AdjectiveMembership[N <: Adjective[T], T] {
 
 object AdjectiveMembership {
 
-  def apply[N <: Adjective[T], T](adjective: N, value: T): adjective.MembershipCheck = adjective mightDescribe value
+  def apply[N <: AdjectiveBase[T], T](adjective: N, value: T): adjective.MembershipCheck = adjective mightDescribe value
 
-  def unapply[N <: Adjective[T], T](arg: AdjectiveMembership[N,T]): Option[(N,T)] = Some((arg.adjective,arg.base))
+  def unapply[N <: AdjectiveBase[T], T](arg: AdjectiveMembership[N,T]): Option[(N,T)] = Some((arg.adjective,arg.base))
 
   /**
     * Represents membership of the value `*` in adjective `Type`
     */
-  case class Includes[N <: Adjective[T], T] (adjective : N, base : T) extends AdjectiveMembership[N, T] {
+  case class Includes[N <: AdjectiveBase[T], T] (adjective : N, base : T) extends AdjectiveMembership[N, T] {
     override val pprint: String = s"{ ${base} ∈ ${adjective.toString} }"
+
+    /**
+      * Applies the same [AdjectiveBase] to the result of the transformation
+      */
+    def map (fn: T => T) = adjective mightDescribe fn(base)
   }
 
   /**
     * Represents non-membership of the value `*` in adjective `Type`
     */
-  case class Excludes[N <: Adjective[T], T] (adjective : N, base : T) extends AdjectiveMembership[N, T] {
+  case class Excludes[N <: AdjectiveBase[T], T] (adjective : N, base : T) extends AdjectiveMembership[N, T] {
     override val pprint: String = s"{ ${base} ∉ ${adjective.toString} }"
   }
 
-  protected[adjective] def nonMembershipAsList[N <: Adjective[T], T] (x: AdjectiveMembership[N,T]): List[Excludes[_,_]] = x match {
+  protected[adjective] def nonMembershipAsList[N <: AdjectiveBase[T], T] (x: AdjectiveMembership[N,T]): List[Excludes[_,_]] = x match {
     case f: Excludes[N,T] => List(f)
     case _                => List.empty
   }

@@ -1,22 +1,22 @@
 package com.victorivri.adjective
 
-import com.victorivri.adjective.Adjective._
+import com.victorivri.adjective.AdjectiveBase._
 import com.victorivri.adjective.AdjectiveMembership._
 import org.scalatest.{FreeSpec, Matchers}
 
-class AdjectiveSpec extends FreeSpec with Matchers {
+class AdjectiveBaseSpec extends FreeSpec with Matchers {
 
   "Usage example" in {
 
     // First, we define the precise types that make up our domain/universe/ontology
     object PersonOntology {
-      // `Nuanced[T]` is the building block of our type algebra
+      // `Adjective[T]` is the building block of our type algebra
       // Try to make them as atomic as possible
-      case object DbId                extends Nuanced[Int]    ((id)=> 0 <= id && id < 2000000)
-      case object NameSequence        extends Nuanced[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
-      case object DisallowedSequences extends Nuanced[String] (_.toLowerCase.contains("fbomb"))
-      case object ScottishLastName    extends Nuanced[String] (_ startsWith "Mc")
-      case object JewishLastName      extends Nuanced[String] (_ endsWith "berg")
+      case object DbId                extends Adjective[Int]    ((id)=> 0 <= id && id < 2000000)
+      case object NameSequence        extends Adjective[String] (_.matches("^[A-Z][a-zA-Z]{1,31}$"))
+      case object DisallowedSequences extends Adjective[String] (_.toLowerCase.contains("fbomb"))
+      case object ScottishLastName    extends Adjective[String] (_ startsWith "Mc")
+      case object JewishLastName      extends Adjective[String] (_ endsWith "berg")
 
       // We use boolean algebra to combine base adjectives into more nuanced adjectives
       val LegalName = NameSequence & ~DisallowedSequences // `~X` negates `X`
@@ -29,7 +29,7 @@ class AdjectiveSpec extends FreeSpec with Matchers {
 
     // Our Domain is now ready to be used in ADTs, validations and elsewhere.
     // As opposed to monadic types, the preferred way to integrate
-    // Adjective is to use its "successful" type, conveniently accessible through `_.^`
+    // AdjectiveBase is to use its "successful" type, conveniently accessible through `_.^`
     case class Person (id: DbId.^, firstName: FirstName.^, lastName: SomeHeritageLastName.^)
 
     // We test membership to an adjective using `mightDescribe`.
@@ -49,6 +49,9 @@ class AdjectiveSpec extends FreeSpec with Matchers {
       case _ => throw new RuntimeException()
     }
 
+    // we can use `map` to operate on the underlying type without breaking the flow
+    validPerson map { _.id map (_ + 1) } shouldBe Right(DbId mightDescribe 124)
+
     // Trying to precisely type the Includes/Excludes exposes a
     // little bit of clunkiness in the path-dependent types of `val`s
     validPerson shouldBe Right(
@@ -66,7 +69,7 @@ class AdjectiveSpec extends FreeSpec with Matchers {
 
     // Using toString gives an intuitive peek at the rule algebra
     //
-    // The atomic [Nuanced#toString] gets printed out.
+    // The atomic [Adjective#toString] gets printed out.
     // Beware that both `equals` and `hashCode` are (mostly) delegated to the `toString` implementation
     validPerson.right.get.toString shouldBe
       "Person({ 123 ∈ DbId },{ Bilbo ∈ (NameSequence & ~DisallowedSequences) },{ McBeggins ∈ ((NameSequence & ~DisallowedSequences) & (ScottishLastName ⊕ JewishLastName)) })"
@@ -96,7 +99,7 @@ class AdjectiveSpec extends FreeSpec with Matchers {
 
   "Generate ~ TildaFlow (copy and paste in AdjectiveMembership.TildaFlow)" ignore {
 
-    def genAs (i: Int) = (1 to i) map { n => s"A$n <: Adjective[N$n]" } mkString ","
+    def genAs (i: Int) = (1 to i) map { n => s"A$n <: AdjectiveBase[N$n]" } mkString ","
     def genNs (i: Int) = (1 to i) map { n => s"N$n" } mkString ","
     def genTup (i: Int) = "(" + ( (1 to i) map { n => s"Includes[A$n,N$n]"} mkString ",") + ")"
     def genABC (i: Int) = (('a' to 'z') take i) mkString ","
@@ -107,7 +110,7 @@ class AdjectiveSpec extends FreeSpec with Matchers {
       println (
         s"""
            |implicit class TupExt${i}[${genAs(i)},${genNs(i)}] (v: Either[List[Excludes[_,_]], ${genTup(i)}]) {
-           |  def ~ [A$j <: Adjective[N$j], N$j] (next: AdjectiveMembership[A$j,N$j]): Either[List[Excludes[_,_]], ${genTup(j)}] =
+           |  def ~ [A$j <: AdjectiveBase[N$j], N$j] (next: AdjectiveMembership[A$j,N$j]): Either[List[Excludes[_,_]], ${genTup(j)}] =
            |    (v, next) match {
            |      case (Right((${genABC(i)})), ${letter(j)}: Includes[A$j,N$j]) => Right((${genABC(j)}))
            |      case (Left(fails), x) => Left(fails ::: AdjectiveMembership.nonMembershipAsList(x))
