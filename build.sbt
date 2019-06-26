@@ -22,7 +22,7 @@ lazy val jvm = library.jvm
 // PUBLISHING-RELATED
 
 ThisBuild / name := "Adjective"
-ThisBuild / version := "0.4.1"
+ThisBuild / version := "0.4.2"
 ThisBuild / description := "Programming is an exercise in linguistics; spice-up Scala types with Adjective."
 ThisBuild / licenses := List("MIT" -> new URL("https://github.com/vivri/Adjective/blob/master/LICENSE"))
 ThisBuild / homepage := Some(url("https://github.com/vivri/adjective"))

@@ -5,7 +5,7 @@
 ### Sonatype Artifact
 __Currently builds for `2.12.x`__
 ```scala
-val adjectiveVersion = "0.4.1"
+val adjectiveVersion = "0.4.2"
 
 // JVM
 libraryDependencies += "com.victorivri" %% "adjective" % adjectiveVersion
