@@ -87,10 +87,9 @@ class AdjectiveBaseSpec extends FreeSpec with Matchers {
     // TODO Using tuple of exclusions as opposed to a List that disregards types would make it easier.
     val exclusionMappings =
       invalid.left.map { exclusions =>
-        exclusions.map { y => y match {
-            case Excludes(DbId, x)                 => s"Bad DB id $x"
-            case Excludes(SomeHeritageLastName, x) => s"Bad Last Name $x"
-          }
+        exclusions.map {
+          case Excludes(DbId, x)                 => s"Bad DB id $x"
+          case Excludes(SomeHeritageLastName, x) => s"Bad Last Name $x"
         }
       }
 

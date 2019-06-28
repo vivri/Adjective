@@ -1,28 +1,21 @@
-lazy val root = project.in(file("./library")).
-  aggregate(js, jvm).
-  settings(
-    publish := {},
-    publishLocal := {}
-  )
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-lazy val library = crossProject.in(file("./library")).settings(
-  scalaVersion := "2.12.6",
-  libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.5" % "test",
-).jsSettings(
-  // JS-specific settings here
-).jvmSettings(
-  // JVM-specific settings here
-)
-
-lazy val js = library.js
-
-lazy val jvm = library.jvm
-
+lazy val adjective =
+  crossProject(JVMPlatform, JSPlatform)
+    .crossType(CrossType.Pure)
+    .settings(
+      scalaVersion := "2.12.6",
+      publish := {},
+      publishLocal := {},
+      libraryDependencies ++= List(
+        "org.scalatest" %%% "scalatest" % "3.0.8" % "test"
+      )
+    )
 
 // PUBLISHING-RELATED
 
 ThisBuild / name := "Adjective"
-ThisBuild / version := "0.4.2"
+ThisBuild / version := "0.4.4"
 ThisBuild / description := "Programming is an exercise in linguistics; spice-up Scala types with Adjective."
 ThisBuild / licenses := List("MIT" -> new URL("https://github.com/vivri/Adjective/blob/master/LICENSE"))
 ThisBuild / homepage := Some(url("https://github.com/vivri/adjective"))
@@ -41,7 +34,7 @@ ThisBuild / developers := List(
   Developer(
     id = "vivri",
     name = "Victor Ivri",
-    email = "victor.ivri@gmail.com",
+    email = "me@victorivri.com",
     url = url("http://www.victorivri.com")
   )
 )

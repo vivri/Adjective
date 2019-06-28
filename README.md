@@ -10,8 +10,9 @@ val adjectiveVersion = "0.4.2"
 // JVM
 libraryDependencies += "com.victorivri" %% "adjective" % adjectiveVersion
 
+// FIXME - publishing issue
 // Scala.js
-libraryDependencies += "com.victorivri" %%% "adjective" % adjectiveVersion
+// libraryDependencies += "com.victorivri" %%% "adjective" % adjectiveVersion
 ```
 
 ### At a Glance
