@@ -11,7 +11,7 @@ val adjectiveVersion = "0.4.4"
 libraryDependencies += "com.victorivri" %% "adjective" % adjectiveVersion
 
 // Scala.js
-// libraryDependencies += "com.victorivri" %%% "adjective" % adjectiveVersion
+libraryDependencies += "com.victorivri" %%% "adjective" % adjectiveVersion
 ```
 
 ### At a Glance
