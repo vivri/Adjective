@@ -44,8 +44,11 @@ case class Person (id: DbId.^, firstName: FirstName.^, lastName: SomeHeritageLas
 
 ### The Problem
 
-We should be able to think and express our domain in these terms, but currently, it is very cumbersome, so we mostly end up
-using the raw types, and create weak constraints via opaque ad-hoc validations.
+The current landscape restricts our ability to express our domain, our __ontology__, in a succinct and intuitive way.
+
+1) We cannot natively apply __adjectives__ to our nouns (e.g. __Positive__ number.)
+1) We cannot natively __combine__ our adjectives to form new ones (e.g. Positive __AND__ even number.)
+1) We cannot easily maintain semantic information in our types without clunky, non-composable custom wrapper-types.
 
 This prevents us from having native __expressive__ types, such as:
 
@@ -69,21 +72,14 @@ For example:
 - __Valid Names__: Capitalized strings __AND__ Strings of length 2 to 30 __AND__ Strings comprised of only [a-zA-Z]
 - ...
 
-#### To sum up:
-The current landscape restricts our ability to express our domain, our __ontology__, in a succinct and intuitive way.
-
-1) We cannot natively apply __adjectives__ to our nouns (e.g. __Positive__ number.)
-1) We cannot natively __combine__ our adjectives to form new ones (e.g. Positive __AND__ even number.)
-1) We cannot easily maintain semantic information in our types without clunky, non-composable custom wrapper-types.
-
 ### The Solution
 
 __Adjective.^__ solved these problems, such that:
 
-1) You can __create arbitrary restrictions__ on base types (a.k.a. __refined__ types, or adjectives in linguistics.)
+1) You can __create arbitrary restrictions__ on base types (a.k.a. adjectives in linguistics.)
 1) You can use __Boolean Algebra__ to arbitrarily __create new adjectives__ from existing ones at runtime.
 1) The range of valid values, the semantics and intent __are forever captured__ in the `Adjective`.
-1) It is (rather) __lightweight__:
+1) It is __(somewhat)__ lightweight:
     - Runtime operations are cacheable and predictable (TODO: benchmark).
     - Adjective rules are best stored as singletons to conserve memory footprint and allocation.
     - Minimum boilerplate. 
