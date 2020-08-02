@@ -16,7 +16,7 @@ lazy val adjective =
 inThisBuild(
   List(
     name := "Adjective",
-    version := "0.4.4",
+    version := "0.5.0",
     description := "Programming is an exercise in linguistics; spice-up Scala types with Adjective.",
     licenses := List("MIT" -> new URL("https://github.com/vivri/Adjective/blob/master/LICENSE")),
     homepage := Some(url("https://github.com/vivri/adjective")),
