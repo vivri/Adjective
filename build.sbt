@@ -4,11 +4,11 @@ lazy val adjective =
   crossProject(JVMPlatform, JSPlatform)
     .crossType(CrossType.Pure)
     .settings(
-      scalaVersion := "2.12.6",
+      scalaVersion := "2.12.10",
       publish := {},
       publishLocal := {},
       libraryDependencies ++= List(
-        "org.scalatest" %%% "scalatest" % "3.0.8" % "test"
+        "org.scalatest" %%% "scalatest" % "3.2.0" % "test"
       )
     )
 

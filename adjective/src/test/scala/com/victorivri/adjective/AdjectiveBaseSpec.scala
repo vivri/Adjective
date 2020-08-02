@@ -2,9 +2,10 @@ package com.victorivri.adjective
 
 import com.victorivri.adjective.AdjectiveBase._
 import com.victorivri.adjective.AdjectiveMembership._
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec._
+import org.scalatest.matchers._
 
-class AdjectiveBaseSpec extends FreeSpec with Matchers {
+class AdjectiveBaseSpec extends AnyFreeSpec with should.Matchers {
 
   "Usage example" in {
 
