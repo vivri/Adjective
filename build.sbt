@@ -33,7 +33,8 @@ inThisBuild(
     ),
 
     developers := List(
-      Developer("vivri", "Victor Ivri", "me@victorivri.com", url("http://www.victorivri.com"))
+      Developer("vivri", "Victor Ivri", "me@victorivri.com", url("https://github.com/vivri")),
+      Developer("mijicd", "Dejan Mijić", "dmijic@acm.org", url("https://github.com/mijicd"))
     ),
 
     // Remove all additional repository other than Maven Central from POM
