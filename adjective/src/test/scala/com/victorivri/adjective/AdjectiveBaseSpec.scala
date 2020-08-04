@@ -2,9 +2,10 @@ package com.victorivri.adjective
 
 import com.victorivri.adjective.AdjectiveBase._
 import com.victorivri.adjective.AdjectiveMembership._
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec._
+import org.scalatest.matchers._
 
-class AdjectiveBaseSpec extends FreeSpec with Matchers {
+class AdjectiveBaseSpec extends AnyFreeSpec with should.Matchers {
 
   "Usage example" in {
 
@@ -102,7 +103,7 @@ class AdjectiveBaseSpec extends FreeSpec with Matchers {
     def genNs (i: Int) = (1 to i) map { n => s"N$n" } mkString ","
     def genTup (i: Int) = "(" + ( (1 to i) map { n => s"Includes[A$n,N$n]"} mkString ",") + ")"
     def genABC (i: Int) = (('a' to 'z') take i) mkString ","
-    def letter (i: Int) = 'a' + (i-1) toChar
+    def letter (i: Int) = 'a' + (i-1).toChar
 
     for (i <- 2 to 21) {
       val j = i + 1

@@ -3,9 +3,9 @@
 ### Programming is an exercise in linguistics; spice-up Scala types with Adjective
 
 ### Sonatype Artifact
-__Currently builds for `2.12.x`__
+__Currently builds for `2.12.x` and `2.13.x`__
 ```scala
-val adjectiveVersion = "0.4.4"
+val adjectiveVersion = "0.5.0"
 
 // JVM
 libraryDependencies += "com.victorivri" %% "adjective" % adjectiveVersion
