@@ -1,5 +1,8 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
+addCommandAlias("testJVM", "adjectiveJVM/test")
+addCommandAlias("testJS", "adjectiveJS/test")
+
 lazy val adjective =
   crossProject(JVMPlatform, JSPlatform)
     .crossType(CrossType.Pure)
@@ -11,6 +14,9 @@ lazy val adjective =
         "org.scalatest" %%% "scalatest" % "3.2.0" % "test"
       )
     )
+
+lazy val adjectiveJVM = adjective.jvm
+lazy val adjectiveJS  = adjective.js
 
 // PUBLISHING-RELATED
 inThisBuild(
