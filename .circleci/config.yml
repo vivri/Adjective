@@ -2,9 +2,11 @@ version: 2.1
 
 scala_212: &scala_212
   SCALA_VERSION: 2.12.10
+  SBT_VERSION: 1.3.13
 
 scala_213: &scala_213
   SCALA_VERSION: 2.13.1
+  SBT_VERSION: 1.3.13
 
 jdk_8: &jdk_8
   JDK_VERSION: 8
@@ -30,6 +32,15 @@ install_jdk: &install_jdk
         sudo apt update
         sudo apt install -y openjdk-8-jdk
         java -version
+
+install_sbt: &install_sbt
+  - run:
+      name: Install SBT
+      command: |
+        apt update && apt install -y curl
+        curl -L -o sbt-$SBT_VERSION.deb https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb
+        dpkg -i sbt-$SBT_VERSION.deb
+        rm sbt-$SBT_VERSION.deb
 
 load_cache: &load_cache
   - restore_cache:
@@ -71,9 +82,10 @@ testJVM: &testJVM
     - checkout
     - <<: *load_cache
     - <<: *install_jdk
+    - <<: *install_sbt
     - run:
         name: Run tests
-        command: ./sbt -Dfatal.warnings=true ++${SCALA_VERSION}! testJVM
+        command: sbt -Dfatal.warnings=true ++${SCALA_VERSION}! testJVM
     - <<: *clean_cache
     - <<: *save_cache
 
@@ -82,10 +94,11 @@ testJS: &testJS
     - checkout
     - <<: *load_cache
     - <<: *install_jdk
+    - <<: *install_sbt
     - <<: *install_nodejs
     - run:
         name: Run tests
-        command: ./sbt -Dfatal.warnings=true ++${SCALA_VERSION}! testJS
+        command: sbt -Dfatal.warnings=true ++${SCALA_VERSION}! testJS
     - <<: *clean_cache
     - <<: *save_cache
 
@@ -117,7 +130,7 @@ release: &release
           $HOME/bin/gpg --version
           echo RELOADAGENT | gpg-connect-agent
           echo $PGP_SECRET | base64 -di | gpg2 --import --no-tty --batch --yes
-          PATH=$HOME/bin:$PATH ./sbt ++${SCALA_VERSION}! ci-release
+          PATH=$HOME/bin:$PATH sbt ++${SCALA_VERSION}! ci-release
 
 jobs:
   test_212_jdk8_jvm:
