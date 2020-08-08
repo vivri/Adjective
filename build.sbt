@@ -14,7 +14,7 @@ inThisBuild(
     organizationHomepage := Some(url("http://victorivri.com/")),
     scmInfo := Some(ScmInfo(url("https://github.com/vivri/adjective"), "scm:git@github.com:vivri/adjective.git")),
     developers := List(
-      Developer("vivri", "Victor Ivri", "me@victorivri.com", url("http://www.victorivri.com")),
+      Developer("vivri", "Victor Ivri", "me@victorivri.com", url("https://github.com/vivri")),
       Developer("mijicd", "Dejan Mijić", "dmijic@acm.org", url("https://github.com/mijicd"))
     )
   )
