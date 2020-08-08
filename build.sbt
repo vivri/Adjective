@@ -16,7 +16,10 @@ inThisBuild(
     developers := List(
       Developer("vivri", "Victor Ivri", "me@victorivri.com", url("https://github.com/vivri")),
       Developer("mijicd", "Dejan Mijić", "dmijic@acm.org", url("https://github.com/mijicd"))
-    )
+    ),
+    pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toArray),
+    pgpPublicRing := file("/tmp/public.asc"),
+    pgpSecretRing := file("/tmp/secret.asc") 
   )
 )
 
