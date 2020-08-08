@@ -15,33 +15,6 @@ machine_ubuntu: &machine_ubuntu
   machine:
     image: ubuntu-1604:201903-01
 
-install_jdk: &install_jdk
-  - run:
-      name: Install JDK
-      command: |
-        while $(ps aux | grep -i ' apt ' | grep -v grep > /dev/null); do sleep 1; done # Wait for apt to be ready
-
-        sudo rm /etc/apt/sources.list.d/*
-        sudo tee /etc/apt/sources.list > /dev/null \<< 'EOF'
-        deb http://mirror.math.princeton.edu/pub/ubuntu/ xenial main universe
-        deb http://mirror.math.princeton.edu/pub/ubuntu/ xenial-updates main universe
-        deb http://mirror.math.princeton.edu/pub/ubuntu/ xenial-backports main universe
-        deb http://mirror.math.princeton.edu/pub/ubuntu/ xenial-security main restricted universe
-        EOF
-
-        sudo apt update
-        sudo apt install -y openjdk-8-jdk
-        java -version
-
-install_sbt: &install_sbt
-  - run:
-      name: Install SBT
-      command: |
-        apt update && apt install -y curl
-        curl -L -o sbt-$SBT_VERSION.deb https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb
-        dpkg -i sbt-$SBT_VERSION.deb
-        rm sbt-$SBT_VERSION.deb
-
 load_cache: &load_cache
   - restore_cache:
       key: sbt-cache
@@ -136,6 +109,8 @@ jobs:
   test_212_jdk8_jvm:
     <<: *testJVM
     <<: *machine_ubuntu
+    docker:
+      - image: eed3si9n/sbt
     environment:
       - <<: *scala_212
       - <<: *jdk_8
@@ -143,6 +118,8 @@ jobs:
   test_213_jdk8_jvm:
     <<: *testJVM
     <<: *machine_ubuntu
+    docker:
+      - image: eed3si9n/sbt
     environment:
       - <<: *scala_213
       - <<: *jdk_8
@@ -150,6 +127,8 @@ jobs:
   test_212_jdk8_js:
     <<: *testJS
     <<: *machine_ubuntu
+    docker:
+      - image: eed3si9n/sbt
     environment:
       - <<: *scala_212
       - <<: *jdk_8
@@ -157,6 +136,8 @@ jobs:
   test_213_jdk8_js:
     <<: *testJS
     <<: *machine_ubuntu
+    docker:
+      - image: eed3si9n/sbt
     environment:
       - <<: *scala_213
       - <<: *jdk_8
@@ -164,6 +145,8 @@ jobs:
   release:
     <<: *release
     <<: *machine_ubuntu
+    docker:
+      - image: eed3si9n/sbt
     environment:
       - <<: *scala_213
       - <<: *jdk_8
