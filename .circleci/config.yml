@@ -54,8 +54,6 @@ testJVM: &testJVM
   steps:
     - checkout
     - <<: *load_cache
-    - <<: *install_jdk
-    - <<: *install_sbt
     - run:
         name: Run tests
         command: sbt -Dfatal.warnings=true ++${SCALA_VERSION}! testJVM
@@ -66,8 +64,6 @@ testJS: &testJS
   steps:
     - checkout
     - <<: *load_cache
-    - <<: *install_jdk
-    - <<: *install_sbt
     - <<: *install_nodejs
     - run:
         name: Run tests
