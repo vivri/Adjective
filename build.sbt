@@ -1,11 +1,14 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
+val adjectiveVersion = "0.5.0"
+
 addCommandAlias("testJVM", "adjectiveJVM/test")
 addCommandAlias("testJS", "adjectiveJS/test")
 
 inThisBuild(
   List(
     name := "Adjective",
+    version := adjectiveVersion,
     description := "Programming is an exercise in linguistics; spice-up Scala types with Adjective.",
     licenses := List("MIT" -> new URL("https://github.com/vivri/Adjective/blob/master/LICENSE")),
     homepage := Some(url("https://github.com/vivri/adjective")),
