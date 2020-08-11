@@ -2,7 +2,8 @@
 
 ### Programming is an exercise in linguistics; spice-up Scala types with Adjective
 
-[![<Adjective>](https://circleci.com/gh/vivri/Adjective.svg?style=shield)](https://app.circleci.com/gh/vivri/Adjective)
+[![Build status](https://circleci.com/gh/vivri/Adjective.svg?style=shield)](https://app.circleci.com/gh/vivri/Adjective)
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/Adjective-Scala/community#)
 
 ### Sonatype Artifact
 __Currently builds for `2.12.x` and `2.13.x`__
