@@ -225,6 +225,12 @@ sealed trait AdjectiveMembership[N <: AdjectiveBase[T], T] {
     case x: Excludes[N,T] => Left(x)
   }
 
+  lazy val toOption: Option[Includes[N,T]] =
+    this match {
+      case x: Includes[N,T] => Some(x)
+      case _                => None
+    }
+
   def ~ [N2 <: AdjectiveBase[T2], T2] (next: AdjectiveMembership[N2,T2]): Either[List[Excludes[_,_]],(Includes[N,T], Includes[N2,T2])] =
     (this, next) match {
       case (a: Includes[N, T], b: Includes[N2, T2]) => Right((a, b))
